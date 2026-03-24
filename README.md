@@ -89,9 +89,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=ubuntu
-WorkingDirectory=/home/ubuntu/discord_bots/alertes-foe
-ExecStart=/home/ubuntu/discord_bots/alertes-foe/venv/bin/python3 /home/ubuntu/discord_bots/alertes-foe/discord_bot.py
+User=youruser
+WorkingDirectory=/path/to/alertes-foe
+ExecStart=/path/to/alertes-foe/venv/bin/python3 /path/to/alertes-foe/discord_bot.py
 Restart=always
 RestartSec=10
 
