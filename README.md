@@ -16,7 +16,7 @@ A Discord bot that automatically sends scheduled messages to a specific channel.
 
 | Day | Time (Paris) | Notes |
 |-----|-------------|-------|
-| Thursday | 07:55 AM | Even/odd week alternating messages |
+| Thursday | 07:55 AM | Even weeks: QI alert — Odd weeks: GBG alert |
 | Tuesday | 08:00 AM | Weekly |
 | Sunday | 06:00 PM | Weekly |
 
@@ -59,8 +59,11 @@ Edit `.env` with your values:
 DISCORD_TOKEN=your_bot_token_here
 CHANNEL_ID=your_channel_id_here
 
-THURSDAY_EVEN_MESSAGE=Your even-week Thursday message
-THURSDAY_ODD_MESSAGE=Your odd-week Thursday message
+# Timezone in pytz format (defaults to Europe/Paris)
+TIMEZONE=Europe/Paris
+
+THURSDAY_EVEN_MESSAGE=Your even-week Thursday message (QI)
+THURSDAY_ODD_MESSAGE=Your odd-week Thursday message (GBG)
 TUESDAY_MESSAGE=Your Tuesday message
 SUNDAY_MESSAGE=Your Sunday message
 ```
@@ -141,8 +144,8 @@ To run the bot automatically on startup, use Task Scheduler:
 ## Week Calculation
 
 ISO week numbers are used to determine even/odd weeks:
-- **Even weeks**: 2, 4, 6, 8, …
-- **Odd weeks**: 1, 3, 5, 7, …
+- **Even weeks** (2, 4, 6, 8, …): Quantum Incursions (QI) alert
+- **Odd weeks** (1, 3, 5, 7, …): Guild Battlegrounds (GBG) alert
 
 ## Troubleshooting
 

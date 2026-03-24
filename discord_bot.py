@@ -44,7 +44,7 @@ class Config:
     SUNDAY_MESSAGE = os.getenv('SUNDAY_MESSAGE', 'Message du dimanche !')
     
     # Timezone
-    PARIS_TZ = pytz.timezone('Europe/Paris')
+    TZ = pytz.timezone(os.getenv('TIMEZONE', 'Europe/Paris'))
     
     # Schedule times
     THURSDAY_TIME = time(7, 55)  # 7:55 AM
@@ -210,7 +210,7 @@ class ScheduledMessenger:
                 'message': message,
                 'author': author,
                 'tag_everyone': tag_everyone,
-                'created_at': datetime.now(Config.PARIS_TZ).isoformat()
+                'created_at': datetime.now(Config.TZ).isoformat()
             }
             
             self.onetime_messages.append(onetime_msg)
@@ -246,13 +246,13 @@ class ScheduledMessenger:
     @staticmethod
     def get_current_day_french() -> str:
         """Get current day name in French"""
-        now_paris = datetime.now(Config.PARIS_TZ)
+        now_paris = datetime.now(Config.TZ)
         english_day = now_paris.strftime('%A').lower()
         return DayMapping.ENGLISH_TO_FRENCH.get(english_day, english_day)
     
     def should_send_message(self, day_name_french: str, target_time: time) -> bool:
         """Check if we should send a message based on current time and last sent date"""
-        now_paris = datetime.now(Config.PARIS_TZ)
+        now_paris = datetime.now(Config.TZ)
         today = now_paris.date()
         current_time = now_paris.time()
         
@@ -279,7 +279,7 @@ class ScheduledMessenger:
     
     def should_send_thursday_catchup(self) -> bool:
         """Check if we should send Thursday message in catch-up window"""
-        now_paris = datetime.now(Config.PARIS_TZ)
+        now_paris = datetime.now(Config.TZ)
         current_day_french = self.get_current_day_french()
         
         # Must be Thursday and haven't sent today's message yet
@@ -298,7 +298,7 @@ class ScheduledMessenger:
                                    day_name: str, is_catchup: bool = False) -> None:
         """Send a stylized message with embed and update last sent date"""
         try:
-            now_paris = datetime.now(Config.PARIS_TZ)
+            now_paris = datetime.now(Config.TZ)
             
             # Get theme based on day and week
             theme = self._get_message_theme(day_name, now_paris)
@@ -403,7 +403,7 @@ async def on_ready():
 async def message_scheduler():
     """Check every minute if scheduled messages should be sent"""
     try:
-        now_paris = datetime.now(Config.PARIS_TZ)
+        now_paris = datetime.now(Config.TZ)
         logger.debug(f"Scheduler check at {now_paris}")
         
         channel = bot.get_channel(Config.CHANNEL_ID)
@@ -495,7 +495,7 @@ async def before_scheduler():
 @commands.cooldown(1, 10, commands.BucketType.user)
 async def status_command(ctx):
     """Check bot status and upcoming scheduled messages"""
-    now_paris = datetime.now(Config.PARIS_TZ)
+    now_paris = datetime.now(Config.TZ)
     
     # French translations for days and months
     days_fr = DayMapping.FRENCH_DISPLAY
@@ -593,7 +593,7 @@ async def test_message(ctx, day: str = None):
         return
     
     if day_en == 'thursday':
-        now_paris = datetime.now(Config.PARIS_TZ)
+        now_paris = datetime.now(Config.TZ)
         if scheduler.is_even_week(now_paris):
             message = Config.THURSDAY_EVEN_MESSAGE
             test_color = discord.Color.purple()
@@ -643,7 +643,7 @@ async def test_silent(ctx, day: str = None):
         return
     
     if day_en == 'thursday':
-        now_paris = datetime.now(Config.PARIS_TZ)
+        now_paris = datetime.now(Config.TZ)
         if scheduler.is_even_week(now_paris):
             message = Config.THURSDAY_EVEN_MESSAGE
             test_color = discord.Color.purple()
@@ -665,7 +665,7 @@ async def test_silent(ctx, day: str = None):
             max(0, test_color.b - 80)
         )
         
-        now_paris = datetime.now(Config.PARIS_TZ)
+        now_paris = datetime.now(Config.TZ)
         embed = discord.Embed(
             title="🔇 TEST SILENCIEUX",
             description=f"**Aperçu du message {day_en.capitalize()} :**\n\n{message}",
@@ -724,8 +724,8 @@ async def schedule_onetime_message(ctx, date: str = None, time: str = None, noti
     # Validate date is in the future
     try:
         target_datetime = datetime.strptime(f"{date} {time}", '%Y-%m-%d %H:%M')
-        target_paris = Config.PARIS_TZ.localize(target_datetime)
-        now_paris = datetime.now(Config.PARIS_TZ)
+        target_paris = Config.TZ.localize(target_datetime)
+        now_paris = datetime.now(Config.TZ)
         
         if target_paris <= now_paris:
             await ctx.send("❌ La date/heure doit être dans le futur !")
@@ -742,7 +742,7 @@ async def schedule_onetime_message(ctx, date: str = None, time: str = None, noti
             title="✅ Message Programmé",
             description=f"Votre message sera envoyé le **{date}** à **{time}** (heure de Paris)",
             color=discord.Color.green(),
-            timestamp=datetime.now(Config.PARIS_TZ)
+            timestamp=datetime.now(Config.TZ)
         )
         embed.add_field(
             name="📝 Message", 
@@ -799,15 +799,15 @@ async def list_scheduled_messages(ctx):
         title="📋 Messages Programmés",
         description=f"**{len(scheduler.onetime_messages)}** message(s) en attente",
         color=discord.Color.blue(),
-        timestamp=datetime.now(Config.PARIS_TZ)
+        timestamp=datetime.now(Config.TZ)
     )
     
-    now_paris = datetime.now(Config.PARIS_TZ)
+    now_paris = datetime.now(Config.TZ)
     
     for msg in scheduler.onetime_messages:
         try:
             target_datetime = datetime.strptime(f"{msg['date']} {msg['time']}", '%Y-%m-%d %H:%M')
-            target_paris = Config.PARIS_TZ.localize(target_datetime)
+            target_paris = Config.TZ.localize(target_datetime)
             
             # Calculate time until message
             time_until = target_paris - now_paris
@@ -872,7 +872,7 @@ async def cancel_scheduled_message(ctx, message_id: int = None):
         title="🗑️ Message Annulé",
         description=f"Le message #{message_id} a été supprimé de la programmation.",
         color=discord.Color.orange(),
-        timestamp=datetime.now(Config.PARIS_TZ)
+        timestamp=datetime.now(Config.TZ)
     )
     embed.add_field(
         name="📝 Message annulé", 
@@ -917,7 +917,7 @@ async def reset_dates_command(ctx):
             title="🔄 Réinitialisation Effectuée", 
             description="Les dates d'envoi ont été réinitialisées.\nTous les messages pourront être envoyés à nouveau.",
             color=discord.Color.yellow(),
-            timestamp=datetime.now(Config.PARIS_TZ)
+            timestamp=datetime.now(Config.TZ)
         )
         embed.add_field(name="⚠️ Attention", value="Les messages automatiques vont reprendre normalement", inline=False)
         embed.set_footer(text=f"Réinitialisé par {ctx.author.display_name}")
@@ -962,7 +962,7 @@ async def help_command(ctx):
     
     embed.add_field(
         name="🕐 Fuseau Horaire",
-        value="🌍 Tous les horaires sont en **heure de Paris** (Europe/Paris)\n*Le bot gère automatiquement les changements d'heure*",
+        value=f"🌍 Tous les horaires sont en **{os.getenv('TIMEZONE', 'Europe/Paris')}**\n*Le bot gère automatiquement les changements d'heure*",
         inline=False
     )
     
