@@ -1,3 +1,10 @@
+# Runtime state / logs
+nohup.out
+sent_dates.json
+bot.log
+discord_bot.log
+logs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
